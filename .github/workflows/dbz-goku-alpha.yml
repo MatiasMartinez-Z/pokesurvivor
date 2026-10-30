@@ -17,3 +17,6 @@ jobs:
         run: node dbz/tests/goku-assets.cjs
       - name: Verify isolated Goku energy visuals
         run: node dbz/tests/ki-vfx-smoke.cjs
+
+      - name: Test standalone Goku dojo
+        run: node dbz/tests/dojo-smoke.cjs
