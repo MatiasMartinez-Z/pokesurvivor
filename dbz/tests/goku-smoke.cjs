@@ -37,8 +37,9 @@ const g={
   DEX:[{dex:1,name:'Bulbasaur',types:['grass']},{dex:4,name:'Charmander',types:['fire']}],
   SPRITE_META:{1:{s:1,a:{}}},
   STARTERS:[{dex:1,start:'vine-whip'},{dex:4,start:'ember'}],
-  Moves:{BY_ID,ALL:Object.values(BY_ID),POOL:{fighting:[],water:['water-gun'],psychic:['psychic']}}
+  Moves:{BY_ID,ALL:Object.values(BY_ID),POOL:{fighting:['karate-chop'],water:['water-gun'],psychic:['psychic']}}
 };
+g.Moves.poolFor = mon => [...new Set([...(g.Moves.POOL.normal || []),...mon.types.flatMap(t=>g.Moves.POOL[t] || [])])];
 const context={G:g,Image:MockImage,document:{createElement:name=>{assert.equal(name,'canvas');return canvas;}},console};
 context.window=context;
 vm.createContext(context);
@@ -48,7 +49,9 @@ assert.equal(g.DEX[1].name,'Charmander');
 assert.equal(g.Moves.BY_ID['water-gun'].name,'Pistola Agua','No mutate other Pokémon moves');
 for(const id of ['dbz-ki-blast','dbz-kamehameha','dbz-genkidama']){
   assert.ok(g.Moves.BY_ID[id],id+' exists');
-  assert.ok(g.Moves.POOL.fighting.includes(id),id+' in fighting pool');
+  assert.ok(g.Moves.poolFor(g.DEX[0]).includes(id),id+' available only to Goku');
+  assert.ok(!g.Moves.poolFor({dex:999,types:['fighting']}).includes(id),id+' must not leak to other fighters');
+  assert.ok(!g.Moves.POOL.fighting.includes(id),id+' must not alter global fighting pool');
 }
 assert.equal(g.STARTERS[0].start,'dbz-ki-blast');
 assert.equal(g.STARTERS[1].start,'ember');
