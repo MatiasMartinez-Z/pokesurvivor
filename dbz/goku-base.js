@@ -64,6 +64,20 @@ window.DBZ_GOKU = (() => {
     if(hero){hero.name='Goku (base)';hero.types=['fighting'];hero.hp=125;hero.spd=112;hero.atk=1.25;}
     G.SPRITE_META[1]=meta;
     if(G.STARTERS){const candidate=G.STARTERS.find(x=>x.dex===1);if(candidate)candidate.start='water-gun';}
+    // Aliases in this isolated playtest; mechanics are still the original move kinds.
+    if (G.Moves && G.Moves.BY_ID) {
+      const aliases=[
+        ['water-gun','Ráfaga de ki (prueba)','Disparo de ki automático.'],
+        ['hydro-pump','Kamehameha (prueba)','Rayo de energía, mecánica de beam reutilizada.'],
+        ['psychic','Genkidama (prueba)','Explosión de área temporal, sin animación propia.']
+      ];
+      for (const [id,name,desc] of aliases) {
+        const move=G.Moves.BY_ID[id];
+        if (move) { move.name=name; move.desc=desc; }
+        if (move && G.Moves.POOL && G.Moves.POOL.fighting && !G.Moves.POOL.fighting.includes(id))
+          G.Moves.POOL.fighting.push(id);
+      }
+    }
     console.info('[DBZ Survivor] Goku base disponible en lugar del Pokémon #1 (prueba técnica).');
   }
   return {sheetURL,patchData,meta,actions:names};
