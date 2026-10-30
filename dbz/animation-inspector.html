@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DBZ Survivor · Laboratorio de animaciones</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0a1020;color:#f3f5ff;font:15px system-ui,sans-serif}main{max-width:1080px;margin:25px auto;padding:20px}h1{margin:0 0 6px;color:#ffad55}p{line-height:1.5;color:#bfc9dd}a{color:#87b9ff}.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:end;padding:20px 0}.control{display:grid;gap:6px}select,input,button{background:#152741;color:#eef5ff;border:1px solid #405679;padding:8px;border-radius:6px}button{cursor:pointer}button:hover{background:#245078}.layout{display:grid;grid-template-columns:minmax(280px,1fr) minmax(250px,1fr);gap:16px}.panel{background:#0e192c;border:1px solid #293b54;border-radius:12px;padding:16px}canvas{image-rendering:pixelated;background:#1f2c43;max-width:100%;width:100%;height:auto;border:1px solid #3c5470}.status{margin:12px 0;padding:12px;border-left:3px solid #f2a044;background:#2b2730;white-space:pre-wrap}.valid{border-color:#5ad3a1;background:#18342c}.meta{font:13px monospace;color:#a4bcd0;margin:10px 0}small{color:#9cb0c9}input[type=file]{max-width:100%} @media(max-width:720px){.layout{grid-template-columns:1fr}main{padding:12px}}</style></head><body><main>
+<h1>Dragon Ball Survivor · Inspector de animaciones</h1><p>Herramienta de producción independiente: valida la geometría y reproduce hojas PNG de 8 direcciones. No reemplaza el motor ni declara un sprite terminado.</p>
+<div class="toolbar"><label class="control">Acción<select id="action"></select></label><label class="control">Dirección<select id="direction"></select></label><label class="control">Velocidad<select id="speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label><label class="control">Imagen propia (PNG)<input id="file" type="file" accept="image/png"></label><button id="play">Pausar</button><button id="reset">Volver al atlas guardado</button></div>
+<div class="layout"><section class="panel"><h2>Sprite activo</h2><canvas width="384" height="384" id="preview"></canvas><p id="status" class="status">Cargando...</p><p id="details" class="meta"></p></section><section class="panel"><h2>Filas y fotogramas</h2><canvas id="atlas" width="640" height="512"></canvas><p>Orden de filas del motor: ↓, ↘, →, ↗, ↑, ↖, ←, ↙.</p><small>Si aparecen vistas diagonales repetidas, el archivo es un bloque de prueba. No basta con dimensiones correctas para aprobar el arte.</small></section></div>
+<p>El fondo cuadriculado es del inspector. Los sprites deben tener transparencia real y un punto de apoyo constante. Si no encuentra un atlas final, verás solamente una vista de referencia estática.</p>
+</main><script src="atlas-config.js"></script><script>
+(function(){'use strict';
+const actions={Idle:6,Walk:8,Attack:8,Shoot:8,Charge:12,Hurt:6,Faint:10};
+const dirs=['Abajo','Abajo-derecha','Derecha','Arriba-derecha','Arriba','Arriba-izquierda','Izquierda','Abajo-izquierda'];
+const cardinal=[0,3,3,3,1,2,2,2];const $=id=>document.getElementById(id);
+const c=$('preview'),ctx=c.getContext('2d'),a=$('atlas'),ax=a.getContext('2d');ctx.imageSmoothingEnabled=false;ax.imageSmoothingEnabled=false;
+let image=null,origin='',paused=false,frame=0,last=0,dt=0,currentAction='Walk',objectURL=null;
+$('action').innerHTML=Object.keys(actions).map(k=>`<option value="${k}">${k}</option>`).join('');$('action').value='Walk';
+$('direction').innerHTML=dirs.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
+function checker(ctx,x,y,w,h,n){for(let yy=y;yy<y+h;yy+=n)for(let xx=x;xx<x+w;xx+=n){ctx.fillStyle=((xx-x)/n+(yy-y)/n)%2?'#34455a':'#25364b';ctx.fillRect(xx,yy,n,n);}}
+function warn(msg,valid){$('status').textContent=msg;$('status').className='status'+(valid?' valid':'');}
+function setImage(img,kind){image=img;origin=kind;frame=0;const count=actions[currentAction];
+ const valid=img.width===count*64&&img.height===512;
+ const reference=img.width===256&&img.height===64;
+ const message=valid?'Atlas compatible con el formato del motor. Validar también las poses y las diagonales.':reference?'Solo hay cuatro vistas; faltan las cuatro diagonales y las animaciones artísticas.':'Geometría incorrecta: se espera '+count*64+'×512 px.';
+ warn(message,valid);$('details').textContent='Fuente: '+kind+' | '+img.width+'×'+img.height+' px | acción '+currentAction;
+}
+function loadURL(url,kind){const im=new Image();im.onload=()=>setImage(im,kind);im.onerror=()=>warn('No se pudo cargar '+url,false);im.src=url;}
+function loadSaved(){const e=(window.DBZ_GOKU_ATLASES||{})[currentAction];loadURL(e?.src||'goku_base_views.png',e?.src?'Atlas final configurado':'Base aprobada (referencia)');}
+function draw(ts){const t=Math.min(100,(ts-last)||16);last=ts;if(!paused){dt+=t*Number($('speed').value);if(dt>110){dt%=110;frame=(frame+1)%actions[currentAction];}}
+ ctx.clearRect(0,0,384,384);checker(ctx,0,0,384,384,24);ax.clearRect(0,0,640,512);checker(ax,0,0,640,512,16);
+ if(image){const dir=+$('direction').value;const ready=image.width===actions[currentAction]*64&&image.height===512;const isRef=image.width===256&&image.height===64;
+ if(ready){const x=frame*64,y=dir*64;ctx.drawImage(image,x,y,64,64,0,0,384,384);const scale=Math.min(1,640/image.width,512/image.height);ax.drawImage(image,0,0,image.width,image.height,0,0,image.width*scale,image.height*scale);
+ ax.strokeStyle='#ffe08a';ax.lineWidth=2;ax.strokeRect(frame*64*scale,dir*64*scale,64*scale,64*scale);
+ } else if(isRef){ctx.drawImage(image,cardinal[dir]*64,0,64,64,0,0,384,384);ax.drawImage(image,0,0,256,64,0,0,640,160);} }
+ requestAnimationFrame(draw);}
+ $('action').addEventListener('change',()=>{currentAction=$('action').value;loadSaved();});$('play').onclick=()=>{paused=!paused;$('play').textContent=paused?'Reproducir':'Pausar';};$('reset').onclick=()=>{if(objectURL)URL.revokeObjectURL(objectURL);objectURL=null;$('file').value='';loadSaved()};
+ $('file').onchange=()=>{const f=$('file').files[0];if(!f)return;if(f.type!=='image/png'){warn('El archivo tiene que ser PNG.',false);return;}if(objectURL)URL.revokeObjectURL(objectURL);objectURL=URL.createObjectURL(f);loadURL(objectURL,'Archivo local: '+f.name);};loadSaved();requestAnimationFrame(draw);
+})();
+</script></body></html>
