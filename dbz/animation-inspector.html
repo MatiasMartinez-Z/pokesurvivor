@@ -56,7 +56,7 @@ function setImage(img,kind){image=img;origin=kind;frame=0;const count=actions[cu
  warn(message,passes);$('details').textContent='Fuente: '+kind+' | '+img.width+'×'+img.height+' px | acción '+currentAction;
 }
 function loadURL(url,kind){const im=new Image();im.onload=()=>setImage(im,kind);im.onerror=()=>warn('No se pudo cargar '+url,false);im.src=url;}
-function loadSaved(){const e=(window.DBZ_GOKU_ATLASES||{})[currentAction];loadURL(e?.src||'goku_base_views.png',e?.src?'Atlas final configurado':'Base aprobada (referencia)');}
+function loadSaved(){const e=(window.DBZ_GOKU_ATLASES||{})[currentAction];const path=e?.src?.startsWith('dbz/')?'../'+e.src:e?.src;loadURL(path||'goku_base_views.png',e?.src?'Atlas final configurado':'Base aprobada (referencia)');}
 function draw(ts){const t=Math.min(100,(ts-last)||16);last=ts;if(!paused){dt+=t*Number($('speed').value);if(dt>110){dt%=110;frame=(frame+1)%actions[currentAction];}}
  ctx.clearRect(0,0,384,384);checker(ctx,0,0,384,384,24);ax.clearRect(0,0,640,512);checker(ax,0,0,640,512,16);
  if(image){const dir=+$('direction').value;const ready=image.width===actions[currentAction]*64&&image.height===512;const isRef=image.width===256&&image.height===64;
