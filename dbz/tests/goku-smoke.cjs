@@ -51,14 +51,14 @@ for(const id of ['dbz-ki-blast','dbz-kamehameha','dbz-genkidama']){
 assert.equal(g.STARTERS[0].start,'dbz-ki-blast');
 assert.equal(g.STARTERS[1].start,'ember');
 assert.equal(g.SPRITE_META[1].a.Walk.r,8);
-assert.equal(g.SPRITE_META[1].a.Walk.n,6);
+assert.equal(g.SPRITE_META[1].a.Walk.n,8);
 
 (async()=>{
   const url=await context.DBZ_GOKU.sheetURL('Walk');
   assert.ok(url.startsWith('data:image/png'));
-  assert.equal(canvas.width,384);
+  assert.equal(canvas.width,512);
   assert.equal(canvas.height,512);
-  assert.equal(drawn.length,48);
-  console.log('PASS: data isolation, 3 new attacks, Goku starter, 8x6 sprite atlas');
+  assert.equal(drawn.length,64);
+  console.log('PASS: data isolation, 3 new attacks, Goku starter, 8x8 sprite atlas');
   console.log('IMPORTANT: browser rendering and real drawn animation still untested.');
 })().catch(error=>{console.error(error);process.exitCode=1});
