@@ -6,7 +6,7 @@
 1. En GitHub seleccionar `dbz/goku-base-integration` → Code → Download ZIP.
 2. Descomprimir **todo** y abrir `dbz.html` (no `index.html`).
 3. En la selección de personaje buscar **Goku (base)** (reemplazo temporal de Pokémon #1 / Bulbasaur).
-4. Jugar con WASD/flechas y selección de habilidades 1–4, Q/E.
+4. Jugar con WASD/flechas y selección de habilidades 1–4, Q/E. Dentro de este playtest, Pistola Agua se presenta como **Ráfaga de ki**, Hidrobomba como **Kamehameha** y Psíquico como **Genkidama**: son alias provisionales reutilizando las mecánicas originales (proyectil, beam, área), sin efectos exclusivos de DBZ.
 5. Si file:// bloquea algo, ejecutar desde carpeta raíz: `python -m http.server 8000` y abrir `http://localhost:8000/dbz.html`.
 
 ## Archivos incorporados
@@ -25,3 +25,9 @@ Geometría: `64x64` por fotograma, 8 filas (Down, DownRight, Right, UpRight, Up,
 
 ## Licencias
 Copyright 2026 JPTER78 — engine MIT hasta la revisión b297089. Esta rama conserva las licencias y avisos que vinieron con el upstream. Arte y marcas Pokémon no están cubiertos por la licencia de código y deberían retirarse/reemplazarse antes de distribuir una adaptación independiente. Dragon Ball es de sus respectivos titulares, sin licencia oficial.
+
+## Validación disponible
+```bash
+node dbz/validate.mjs
+```
+La prueba estática comprueba sintaxis de scripts, referencias HTML y firma/dimensiones PNG; no valida el render ni el gameplay. Se agregó workflow de GitHub Actions, pero sus primeras ejecuciones fallaron sin pasos ni logs utilizables, por lo que se necesita ejecutar la validación local y abrir `dbz.html` en un navegador real.
