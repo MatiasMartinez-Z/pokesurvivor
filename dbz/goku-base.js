@@ -101,16 +101,30 @@ window.DBZ_GOKU = (() => {
         {from:'psychic', id:'dbz-genkidama', name:'Genkidama', desc:'Ataque de energía de gran área (provisional).',
          dmg:27, cd:6.5, type:'fighting'}
       ];
-      G.Moves.POOL.fighting = G.Moves.POOL.fighting || [];
+      const ids = attacks.map(x=>x.id);
       for (const spec of attacks) {
-        if (G.Moves.BY_ID[spec.id]) continue; // idempotente en recargas
+        if (G.Moves.BY_ID[spec.id]) continue; // idempotente
         const base = G.Moves.BY_ID[spec.from];
         if (!base) { console.warn('DBZ: falta técnica base', spec.from); continue; }
         const move = Object.assign({}, base, spec);
         delete move.from;
         G.Moves.BY_ID[move.id] = move;
         G.Moves.ALL.push(move);
-        G.Moves.POOL.fighting.push(move.id);
+        // NO insertarlos en G.Moves.POOL.fighting: otros luchadores los heredarían.
+      }
+      // Personalizar el catálogo exclusivamente cuando el personaje es Goku (dex #1).
+      if (!G.Moves._dbzScopedPool) {
+        const originalPoolFor = G.Moves.poolFor;
+        if (typeof originalPoolFor === 'function') {
+          G.Moves.poolFor = function(mon) {
+            const defaults = originalPoolFor(mon);
+            if (!mon || Number(mon.dex) !== 1) return defaults;
+            return [...new Set([...defaults, ...ids.filter(id=>!!G.Moves.BY_ID[id])])];
+          };
+          G.Moves._dbzScopedPool = true;
+        } else {
+          console.warn('[DBZ] No hay poolFor: técnicas limitadas a la habilidad inicial.');
+        }
       }
       if (G.STARTERS) {
         const candidate = G.STARTERS.find(x=>x.dex===1);
