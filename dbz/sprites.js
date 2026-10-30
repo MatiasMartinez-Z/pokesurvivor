@@ -12,6 +12,8 @@
 G.Sprites = (() => {
   /** Unidades de mundo por píxel de arte. Tiles y sprites comparten escala. */
   const PX = 2;
+  // La fuente aprobada de Goku tiene 64px; se escala respecto a los sprites PMD más pequeños.
+  const artScale = dex => dex === 1 ? 0.68 : 1;
   const sheets = new Map();          // "dex/Anim[/s]" -> {img, ready, failed}
 
   function meta(dex) { return G.SPRITE_META[dex] || null; }
@@ -132,20 +134,20 @@ G.Sprites = (() => {
   function bodyRadius(dex, scale = 1) {
     const m = animMeta(dex, 'Idle');
     const w = m ? m.w : 32;
-    return G.U.clamp(w * 0.22, 5, 26) * PX * scale;
+    return G.U.clamp(w * 0.22, 5, 26) * PX * scale * artScale(dex);
   }
 
   /** Alto visual aproximado (para barras de vida y números de daño). */
   function bodyHeight(dex, scale = 1) {
     const m = animMeta(dex, 'Idle');
-    return (m ? m.ay : 24) * PX * scale;
+    return (m ? m.ay : 24) * PX * scale * artScale(dex);
   }
 
   /** Sombra elíptica bajo los pies, tamaño según el ShadowSize de PMD. */
   function drawShadow(ctx, dex, x, y, scale = 1) {
     const m = meta(dex);
     const s = m ? m.s : 1;
-    const rx = [5, 8, 12][G.U.clamp(s, 0, 2)] * PX * scale;
+    const rx = [5, 8, 12][G.U.clamp(s, 0, 2)] * PX * scale * artScale(dex);
     ctx.fillStyle = 'rgba(0,0,0,.34)';
     ctx.beginPath();
     ctx.ellipse(x, y, rx, rx * 0.42, 0, 0, 6.2832);
@@ -164,7 +166,7 @@ G.Sprites = (() => {
     constructor(dex, scale = 1, shiny = false) {
       this.dex = dex;
       this.shiny = shiny && hasShiny(dex);
-      this.scale = scale;
+      this.scale = scale * artScale(dex);
       this.base = 'Idle';
       this.cur = 'Idle';
       this.frame = 0;
