@@ -98,8 +98,8 @@ window.DBZ_GOKU = (() => {
          dmg:13, cd:0.48, type:'fighting'},
         {from:'hydro-pump', id:'dbz-kamehameha', name:'Kamehameha', desc:'Rayo de energía concentrada.',
          dmg:30, cd:3.8, type:'fighting'},
-        {from:'psychic', id:'dbz-genkidama', name:'Genkidama', desc:'Ataque de energía de gran área (provisional).',
-         dmg:27, cd:6.5, type:'fighting'}
+        {from:'aura-sphere', id:'dbz-genkidama', name:'Genkidama', desc:'Esfera de ki gigante que atraviesa múltiples enemigos (explosión final pendiente).',
+         dmg:35, cd:7.5, speed:175, count:1, pierce:8, size:27, life:3.1, homing:1.3, knock:80, type:'fighting'}
       ];
       const ids = attacks.map(x=>x.id);
       for (const spec of attacks) {
