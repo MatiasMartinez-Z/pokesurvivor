@@ -1,33 +1,43 @@
-# DBZ Survivor — Goku base en motor real (alpha)
+# DBZ Survivor — Goku base en el motor original (alpha)
 
-**Rama aislada:** `dbz/goku-base-integration` basada en el commit `b297089` de JPTER78 (código MIT). La rama `main` no se modifica.
+**Rama experimental** `dbz/goku-base-integration`, derivada de `b297089` (código MIT © 2026 JPTER78). `main` conserva el fork sin modificar.
 
-## Probar
-1. En GitHub seleccionar `dbz/goku-base-integration` → Code → Download ZIP.
-2. Descomprimir **todo** y abrir `dbz.html` (no `index.html`).
-3. En la selección de personaje buscar **Goku (base)** (reemplazo temporal de Pokémon #1 / Bulbasaur).
-4. Jugar con WASD/flechas y selección de habilidades 1–4, Q/E. Dentro de este playtest, Pistola Agua se presenta como **Ráfaga de ki**, Hidrobomba como **Kamehameha** y Psíquico como **Genkidama**: son alias provisionales reutilizando las mecánicas originales (proyectil, beam, área), sin efectos exclusivos de DBZ.
-5. Si file:// bloquea algo, ejecutar desde carpeta raíz: `python -m http.server 8000` y abrir `http://localhost:8000/dbz.html`.
+## Cómo probar
+1. Abrir https://github.com/MatiasMartinez-Z/pokesurvivor/tree/dbz/goku-base-integration
+2. **Code → Download ZIP**, descomprimir la carpeta completa.
+3. Abrir `dbz.html` en un navegador. Si el navegador bloquea `file://`, iniciar desde la carpeta `python -m http.server 8000` y abrir `http://localhost:8000/dbz.html`.
+4. Elegir **Goku (base)** (sustituye temporalmente el personaje con dex #1). Mover con WASD/flechas, habilidades con 1–4 o Q/E.
+5. Para ver/inspeccionar las hojas sin jugar: `dbz/animation-inspector.html`.
 
-## Archivos incorporados
-- `dbz.html`: copia experimental de `dev.html`, carga scripts originales y nuestras dos modificaciones, sin sobrescribir el original.
-- `dbz/sprites.js`: copia adaptada del lector de sprites MIT de JPTER78.
-- `dbz/goku-base.js`: generador de atlas PNG transparentes en navegador + modificación temporal del personaje #1.
-- `dbz/goku_base_views.png`: Goku base aprobado, cuatro vistas de 64x64, atlas 256x64; fuente íntegra de alta calidad en Canva/carpeta del proyecto de arte.
+## Integración real existente
+- `dbz/animations/`: siete archivos PNG 64×64 por fotograma, 8 filas, **464 celdas**, acciones `Idle,Walk,Attack,Shoot,Charge,Hurt,Faint`.
+- `dbz/atlas-config.js`: habilita las siete hojas reales, con `ay=56`, en lugar de regenerar siempre el bloque procedural.
+- `dbz/goku-base.js`: define Goku #1 y movimientos EXCLUSIVOS `dbz-ki-blast`, `dbz-kamehameha`, `dbz-genkidama`; las habilidades originales Pokémon no se renombran ni se comparten indiscriminadamente.
+- `dbz/ki-vfx.js` y `dbz/ki-shapes.js`: paleta azul y formas de energía de ki, rayo y esfera grande.
+- `dbz/sprites.js`: lector original del motor adaptado con escala y anclaje propios para Goku.
+- `dbz/animation-inspector.html`: visor/QA de atlases reales y archivos PNG elegidos por el usuario.
+- `dbz.html`: entrada a la prueba en motor original. `dev.html` e `index.html` originales no se han sobrescrito.
 
-## Importante: ESTADO DE LAS ANIMACIONES
-**NO TERMINADAS**. Las siete animaciones reconocidas por el motor se generan como secuencias de movimiento provisionales a partir de cuatro vistas; no son siete acciones dibujadas a mano. Las cuatro diagonales repiten un lateral. Las poses de brazos y piernas no están dibujadas dentro de este branch. Los efectos y otras técnicas DBZ no están integrados al sistema de combate del juego, y en este momento se reutiliza provisionalmente el movimiento de agua como ataque inicial.
+## Estado artístico: NO TERMINADO
+Los siete atlas son estudios procedurales con movimiento de extremidades extraído del personaje, **no animaciones definitivas dibujadas a mano**. Las diagonales provienen de composiciones de vistas frontales/laterales y aún necesitan correcciones. El gi roto está pendiente de aprobación; no está activado.
+La Genkidama es una esfera grande y penetrante, pero no tiene explosión final ni animación perfecta; Kamehameha usa el sistema beam original con efectos azules.
+No se ha podido verificar una partida real en navegador desde este entorno (el navegador automatizado bloquea localhost).
 
-El pipeline de ilustración y animación ampliada se gestiona en `MatiasMartinez-Z/dbz-survivor`. No sustituir el Goku original aprobado por imagen generada sin validación del usuario.
-
-## Aspectos técnicos
-Geometría: `64x64` por fotograma, 8 filas (Down, DownRight, Right, UpRight, Up, UpLeft, Left, DownLeft), N columnas, `ax=31.5`, `ay=61`. Las hojas del personaje #1 se materializan en tiempo de ejecución usando canvas y se cargan por el mismo `G.Sprites.sheet` del motor. El resto de personajes continúan sin cambios.
-
-## Licencias
-Copyright 2026 JPTER78 — engine MIT hasta la revisión b297089. Esta rama conserva las licencias y avisos que vinieron con el upstream. Arte y marcas Pokémon no están cubiertos por la licencia de código y deberían retirarse/reemplazarse antes de distribuir una adaptación independiente. Dragon Ball es de sus respectivos titulares, sin licencia oficial.
-
-## Validación disponible
+## Pruebas reproducibles
+Desde la raíz del fork:
 ```bash
 node dbz/validate.mjs
+node dbz/tests/goku-smoke.cjs
+node dbz/tests/goku-assets.cjs
+node dbz/tests/ki-vfx-smoke.cjs
 ```
-La prueba estática comprueba sintaxis de scripts, referencias HTML y firma/dimensiones PNG; no valida el render ni el gameplay. Se agregó workflow de GitHub Actions, pero sus primeras ejecuciones fallaron sin pasos ni logs utilizables, por lo que se necesita ejecutar la validación local y abrir `dbz.html` en un navegador real.
+Validaciones geométricas NO sustituyen inspección visual.
+
+## Fuente original de arte y memoria
+https://github.com/MatiasMartinez-Z/dbz-survivor
+Fuente original aprobada: `assets/characters/goku/base/source/goku_master_aprobado.png`.
+Guía de producción: `docs/goku-rig-production.md`.
+Cerebro: `brain/`.
+
+## Licencias
+Motor de JPTER78 hasta `b297089` bajo MIT con aviso; versiones posteriores bajo licencia no comercial. Personajes y marcas Pokémon/Dragon Ball están sujetos a derechos separados. El fork incluye recursos originales que deberían sustituirse o retirarse antes de distribuir una adaptación independiente.
