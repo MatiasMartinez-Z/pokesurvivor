@@ -11,24 +11,30 @@ window.DBZ_GOKU = (() => {
   });
   sprite.src = 'dbz/goku_base_views.png';
   const dirs = [0,3,3,3,1,2,2,2]; // down, down-right, right, up-right, up, up-left, left, down-left
-  const timing = { Idle:[18,18,18,18], Walk:[5,5,5,5,5,5], Attack:[4,3,3,4,4,4,5,5],
-    Shoot:[6,4,4,4,5,6], Charge:[5,5,5,5,5,5,5,5], Hurt:[3,3,5,6], Faint:[7,5,5,5,10,20] };
+  // Animation manifest: 7 states in 8 directions. Replaces old 4/6-frame temporary profiles.
+  const timing = {
+    Idle:Array(6).fill(8), Walk:Array(8).fill(5), Attack:Array(8).fill(4),
+    Shoot:Array(8).fill(5), Charge:Array(12).fill(6), Hurt:Array(6).fill(5),
+    Faint:Array(10).fill(8)
+  };
+  const external = window.DBZ_GOKU_ATLASES || {};
   const names = Object.keys(timing);
   const meta = { s:1, sh:0, a:{} };
   for (const name of names) {
     const d=timing[name];
     meta.a[name]={ w:64,h:64,n:d.length,r:8,d,ax:31.5,ay:61 };
+    if (external[name] && Number.isFinite(external[name].ay)) meta.a[name].ay=external[name].ay;
   }
   const cache = new Map();
   function drawFrame(ctx, action, frame, row, columns) {
-    const src=dirs[row], dy = action === 'Walk' ? [0,-2,-1,0,-2,-1][frame] :
-      action === 'Idle' ? [0,-1,-1,0][frame] :
-      action === 'Charge' ? [0,-1,-2,-2,-1,0,-1,0][frame] :
-      action === 'Hurt' ? [0,1,2,1][frame] : 0;
+    const src=dirs[row], dy = action === 'Walk' ? [0,-2,-1,0,-2,-1,0,-1][frame%8] :
+      action === 'Idle' ? [0,-1,-1,0,-1,0][frame%6] :
+      action === 'Charge' ? [0,-1,-2,-2,-1,0,-1,0,0,-1,-2,-1][frame%12] :
+      action === 'Hurt' ? [0,1,2,1,0,0][frame%6] : 0;
     let dx=0;
-    if(action==='Walk') dx=[-1,0,1,0,-1,0][frame];
+    if(action==='Walk') dx=[-1,0,1,0,-1,0,1,0][frame%8];
     if(action==='Attack') dx=[0,1,2,2,1,0,0,0][frame];
-    if(action==='Hurt') dx=[0,-1,-2,0][frame];
+    if(action==='Hurt') dx=[0,-1,-2,0,0,0][frame%6];
     const x=frame*64,y=row*64;
     ctx.drawImage(sprite,src*64,0,64,64,x+dx,y+dy,64,64);
     if(action==='Charge' && frame > 1 && frame < 7) {
@@ -49,6 +55,20 @@ window.DBZ_GOKU = (() => {
   }
   async function sheetURL(action) {
     if(cache.has(action)) return cache.get(action);
+    // If a completed 64px atlas exists, consume it without changing engine code.
+    // Invalid/missing art gracefully falls back to a clearly marked blockout.
+    const config = external[action];
+    if (config && config.src) {
+      const expectedWidth = 64 * (timing[action]?.length ?? 4);
+      const image = new Image();
+      const loaded = await new Promise(resolve => {
+        image.onload = () => resolve(image.naturalWidth === expectedWidth && image.naturalHeight === 512);
+        image.onerror = () => resolve(false);
+        image.src = config.src;
+      });
+      if (loaded) { cache.set(action,config.src); return config.src; }
+      console.warn('[DBZ] Atlas inválido o ausente, usando blockout:', action, config.src);
+    }
     await pending;
     const n=timing[action]?.length ?? 4;
     const c=document.createElement('canvas');c.width=64*n;c.height=64*8;
