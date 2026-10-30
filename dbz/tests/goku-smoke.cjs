@@ -31,7 +31,8 @@ const mk=(id,name,type,kind)=>({id,name,type,kind,desc:'original',ups:[{t:'test'
 const BY_ID={
   'water-gun':mk('water-gun','Pistola Agua','water','projectile'),
   'hydro-pump':mk('hydro-pump','Hidrobomba','water','beam'),
-  'psychic':mk('psychic','Psíquico','psychic','nova')
+  'psychic':mk('psychic','Psíquico','psychic','nova'),
+  'aura-sphere':mk('aura-sphere','Esfera Aural','fighting','projectile')
 };
 const g={
   DEX:[{dex:1,name:'Bulbasaur',types:['grass']},{dex:4,name:'Charmander',types:['fire']}],
