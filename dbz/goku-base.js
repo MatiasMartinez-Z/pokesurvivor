@@ -36,7 +36,19 @@ window.DBZ_GOKU = (() => {
     if(action==='Attack') dx=[0,1,2,2,1,0,0,0][frame];
     if(action==='Hurt') dx=[0,-1,-2,0,0,0][frame%6];
     const x=frame*64,y=row*64;
-    ctx.drawImage(sprite,src*64,0,64,64,x+dx,y+dy,64,64);
+    if (action === 'Faint' && frame >= 2) {
+      // Motion-blockout only: Goku visibly falls instead of disappearing in a dark rectangle.
+      const fall = Math.min(1, (frame - 1) / 4);
+      const sign = row >= 4 ? -1 : 1;
+      ctx.save();
+      ctx.translate(x + 30, y + 43);
+      ctx.rotate(sign * fall * Math.PI * .5);
+      ctx.scale(1 - .28 * fall, 1 - .28 * fall);
+      ctx.drawImage(sprite, src * 64, 0, 64, 64, -32, -44, 64, 64);
+      ctx.restore();
+    } else {
+      ctx.drawImage(sprite,src*64,0,64,64,x+dx,y+dy,64,64);
+    }
     if(action==='Charge' && frame > 1 && frame < 7) {
       ctx.save();ctx.strokeStyle='rgba(99,181,255,.75)';ctx.lineWidth=1;
       ctx.beginPath();ctx.arc(x+32,y+40,24+frame%3,0.2,2.9);ctx.stroke();ctx.restore();
@@ -47,10 +59,6 @@ window.DBZ_GOKU = (() => {
     if(action==='Hurt' && (frame===1 || frame===2)) {
       ctx.save();ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(255,70,48,.25)';
       ctx.fillRect(x,y,64,64);ctx.restore();
-    }
-    if(action==='Faint' && frame>=2) {
-      // The true falling pose must be redrawn in Aseprite. Kept as blockout.
-      ctx.save();ctx.fillStyle='rgba(6,16,26,.8)';ctx.fillRect(x,y,64,64);ctx.restore();
     }
   }
   async function sheetURL(action) {
