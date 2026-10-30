@@ -17,11 +17,43 @@ $('action').innerHTML=Object.keys(actions).map(k=>`<option value="${k}">${k}</op
 $('direction').innerHTML=dirs.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
 function checker(ctx,x,y,w,h,n){for(let yy=y;yy<y+h;yy+=n)for(let xx=x;xx<x+w;xx+=n){ctx.fillStyle=((xx-x)/n+(yy-y)/n)%2?'#34455a':'#25364b';ctx.fillRect(xx,yy,n,n);}}
 function warn(msg,valid){$('status').textContent=msg;$('status').className='status'+(valid?' valid':'');}
+function auditAtlas(img,count){
+ const tmp=document.createElement('canvas');tmp.width=img.width;tmp.height=img.height;
+ const t=tmp.getContext('2d',{willReadFrequently:true});t.drawImage(img,0,0);
+ const arr=t.getImageData(0,0,img.width,img.height).data;
+ const equals=(ra,rb,fr)=>{
+   for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+     const a=((ra*64+y)*img.width+fr*64+x)*4,b=((rb*64+y)*img.width+fr*64+x)*4;
+     for(let c=0;c<4;c++)if(arr[a+c]!==arr[b+c])return false;
+   }return true;
+ };
+ const pairs=[[1,0,2],[3,2,4],[5,4,6],[7,6,0]],bad=[];
+ for(const [d,x,y] of pairs){for(const c of [x,y]){
+   let matching=0;for(let fr=0;fr<count;fr++)if(equals(d,c,fr))matching++;
+   if(matching>=Math.max(1,Math.floor(count*.8)))bad.push(dirs[d]+' idéntica a '+dirs[c]+' ('+matching+'/'+count+')');
+ }}
+ let empty=0,contacts=0;
+ for(let row=0;row<8;row++)for(let fr=0;fr<count;fr++){
+   let filled=0,edge=false;
+   for(let y=0;y<64;y++)for(let x=0;x<64;x++){
+     const idx=((row*64+y)*img.width+fr*64+x)*4+3;
+     if(arr[idx]>0){filled++;if(x===0||y===0||x===63||y===63)edge=true;}
+   }
+   if(!filled)empty++;if(edge)contacts++;
+ }
+ return {bad,empty,contacts};
+}
 function setImage(img,kind){image=img;origin=kind;frame=0;const count=actions[currentAction];
  const valid=img.width===count*64&&img.height===512;
  const reference=img.width===256&&img.height===64;
- const message=valid?'Atlas compatible con el formato del motor. Validar también las poses y las diagonales.':reference?'Solo hay cuatro vistas; faltan las cuatro diagonales y las animaciones artísticas.':'Geometría incorrecta: se espera '+count*64+'×512 px.';
- warn(message,valid);$('details').textContent='Fuente: '+kind+' | '+img.width+'×'+img.height+' px | acción '+currentAction;
+ let message=valid?'Geometría válida; pendientes los criterios artísticos.':reference?'Solo hay cuatro vistas; faltan las diagonales y animaciones reales.':'Geometría incorrecta: se espera '+count*64+'×512 px.';
+ let passes=valid;
+ if(valid){try{const q=auditAtlas(img,count);
+   if(q.bad.length){passes=false;message+='\nDIAGONALES COPIADAS: '+q.bad.join('; ');}
+   if(q.empty){passes=false;message+='\nFotogramas vacíos: '+q.empty;}
+   if(q.contacts)message+='\nPosibles recortes en borde: '+q.contacts;
+ }catch(e){passes=false;message+='\nNo se pudo auditar píxeles: '+e.message;}}
+ warn(message,passes);$('details').textContent='Fuente: '+kind+' | '+img.width+'×'+img.height+' px | acción '+currentAction;
 }
 function loadURL(url,kind){const im=new Image();im.onload=()=>setImage(im,kind);im.onerror=()=>warn('No se pudo cargar '+url,false);im.src=url;}
 function loadSaved(){const e=(window.DBZ_GOKU_ATLASES||{})[currentAction];loadURL(e?.src||'goku_base_views.png',e?.src?'Atlas final configurado':'Base aprobada (referencia)');}
