@@ -11,12 +11,14 @@ const path = require('node:path');
 const source = fs.readFileSync(path.resolve(__dirname,'..','goku-base.js'),'utf8');
 
 const drawn = [];
+const rotations = [];
 const canvas = {
   width:0,height:0,
   getContext:()=>({
     imageSmoothingEnabled:false,
     drawImage:(...args)=>drawn.push(args),
     save(){}, restore(){}, beginPath(){}, arc(){}, stroke(){}, fill(){},
+    translate(){}, scale(){}, rotate:(angle)=>rotations.push(angle),
     fillRect(){}, set strokeStyle(v){}, set lineWidth(v){},set fillStyle(v){},
   }),
   toDataURL:()=> 'data:image/png;base64,MOCK'
@@ -59,6 +61,12 @@ assert.equal(g.SPRITE_META[1].a.Walk.n,8);
   assert.equal(canvas.width,512);
   assert.equal(canvas.height,512);
   assert.equal(drawn.length,64);
+  const faint = await context.DBZ_GOKU.sheetURL('Faint');
+  assert.ok(faint.startsWith('data:image/png'));
+  assert.equal(canvas.width,640);
+  assert.equal(canvas.height,512);
+  assert.equal(drawn.length,144, '64 Walk + 80 Faint sprite draws');
+  assert.equal(rotations.length,64, 'Faint must visibly tilt in 8 rows of 8 non-idle frames');
   console.log('PASS: data isolation, 3 new attacks, Goku starter, 8x8 sprite atlas');
   console.log('IMPORTANT: browser rendering and real drawn animation still untested.');
 })().catch(error=>{console.error(error);process.exitCode=1});
