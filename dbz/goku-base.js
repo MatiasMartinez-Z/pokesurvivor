@@ -63,19 +63,30 @@ window.DBZ_GOKU = (() => {
     const hero=G.DEX.find(x=>x.dex===1);
     if(hero){hero.name='Goku (base)';hero.types=['fighting'];hero.hp=125;hero.spd=112;hero.atk=1.25;}
     G.SPRITE_META[1]=meta;
-    if(G.STARTERS){const candidate=G.STARTERS.find(x=>x.dex===1);if(candidate)candidate.start='water-gun';}
-    // Aliases in this isolated playtest; mechanics are still the original move kinds.
-    if (G.Moves && G.Moves.BY_ID) {
-      const aliases=[
-        ['water-gun','Ráfaga de ki (prueba)','Disparo de ki automático.'],
-        ['hydro-pump','Kamehameha (prueba)','Rayo de energía, mecánica de beam reutilizada.'],
-        ['psychic','Genkidama (prueba)','Explosión de área temporal, sin animación propia.']
+    // Aislar los ataques DBZ: NO renombrar los movimientos de todos los Pokémon.
+    if (G.Moves && G.Moves.BY_ID && G.Moves.POOL) {
+      const attacks = [
+        {from:'water-gun', id:'dbz-ki-blast', name:'Ráfaga de ki', desc:'Proyectiles de energía automáticos.',
+         dmg:13, cd:0.48, type:'fighting'},
+        {from:'hydro-pump', id:'dbz-kamehameha', name:'Kamehameha', desc:'Rayo de energía concentrada.',
+         dmg:30, cd:3.8, type:'fighting'},
+        {from:'psychic', id:'dbz-genkidama', name:'Genkidama', desc:'Ataque de energía de gran área (provisional).',
+         dmg:27, cd:6.5, type:'fighting'}
       ];
-      for (const [id,name,desc] of aliases) {
-        const move=G.Moves.BY_ID[id];
-        if (move) { move.name=name; move.desc=desc; }
-        if (move && G.Moves.POOL && G.Moves.POOL.fighting && !G.Moves.POOL.fighting.includes(id))
-          G.Moves.POOL.fighting.push(id);
+      G.Moves.POOL.fighting = G.Moves.POOL.fighting || [];
+      for (const spec of attacks) {
+        if (G.Moves.BY_ID[spec.id]) continue; // idempotente en recargas
+        const base = G.Moves.BY_ID[spec.from];
+        if (!base) { console.warn('DBZ: falta técnica base', spec.from); continue; }
+        const move = Object.assign({}, base, spec);
+        delete move.from;
+        G.Moves.BY_ID[move.id] = move;
+        G.Moves.ALL.push(move);
+        G.Moves.POOL.fighting.push(move.id);
+      }
+      if (G.STARTERS) {
+        const candidate = G.STARTERS.find(x=>x.dex===1);
+        if (candidate && G.Moves.BY_ID['dbz-ki-blast']) candidate.start='dbz-ki-blast';
       }
     }
     console.info('[DBZ Survivor] Goku base disponible en lugar del Pokémon #1 (prueba técnica).');
