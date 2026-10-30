@@ -12,3 +12,8 @@ jobs:
         run: node dbz/validate.mjs
       - name: Verify Goku state and animation data
         run: node dbz/tests/goku-smoke.cjs
+
+      - name: Verify committed Goku sprite sheets
+        run: node dbz/tests/goku-assets.cjs
+      - name: Verify isolated Goku energy visuals
+        run: node dbz/tests/ki-vfx-smoke.cjs
